@@ -29,8 +29,45 @@
     <input type="text" id="city-input" placeholder="Masukkan nama kota..." value="Yogyakarta">
     <button id="search-btn">Cari</button>
   </div>
-  <div id="result"></div>
 
-  <p>Masukkan lokasi untuk melihat data cuaca.</p>
+  <div id="result">
+    <p>Masukkan nama lokasi untuk melihat data cuaca.</p>
+  </div>
+
+  <!-- jQuery CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <script>
+    const API_KEY = "ffc1c5d59b344e5487a10849250610"; 
+    const BASE_URL = "https://api.weatherapi.com/v1/current.json";
+
+    function getWeather(city) {
+      $("#result").html("<p>Sedang memuat data...</p>");
+      const url = `${BASE_URL}?key=${API_KEY}&q=${encodeURIComponent(city)}&aqi=no`;
+
+      $.ajax({
+        url: url,
+        method: "GET",
+        success: function(data) {
+          const lokasi = data.location.name || "-";
+          const negara = data.location.country || "-";
+          const suhu = data.current.temp_c;
+          const lon = data.location.lon;
+          const lat = data.location.lat;
+
+          $("#result").html(`
+            <div class="row"><span class="label">Lokasi:</span> <span class="value">${lokasi}</span></div>
+            <div class="row"><span class="label">Negara:</span> <span class="value">${negara}</span></div>
+            <div class="row"><span class="label">Suhu:</span> <span class="value">${suhu}°C</span></div>
+            <div class="row"><span class="label">Longitude:</span> <span class="value">${lon}</span></div>
+            <div class="row"><span class="label">Latitude:</span> <span class="value">${lat}</span></div>
+          `);
+        },
+        error: function(xhr) {
+          $("#result").html("<p style='color:red;'>Gagal mengambil data. Pastikan nama kota benar dan API key valid.</p>");
+        }
+      });
+    }
+  </script>
 </body>
 </html>
