@@ -34,7 +34,6 @@
     <p>Masukkan nama lokasi untuk melihat data cuaca.</p>
   </div>
 
-  <!-- jQuery CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
   <script>
@@ -42,6 +41,11 @@
     const BASE_URL = "https://api.weatherapi.com/v1/current.json";
 
     function getWeather(city) {
+      if (!city) {
+        $("#result").html("<p style='color:red;'>Mohon masukkan nama kota.</p>");
+        return;
+      }
+
       $("#result").html("<p>Sedang memuat data...</p>");
       const url = `${BASE_URL}?key=${API_KEY}&q=${encodeURIComponent(city)}&aqi=no`;
 
@@ -49,14 +53,16 @@
         url: url,
         method: "GET",
         success: function(data) {
-          const lokasi = data.location.name || "-";
+          const kecamatan = data.location.name || "-";
+          const provinsi = data.location.region || "-";
           const negara = data.location.country || "-";
-          const suhu = data.current.temp_c;
+          const suhu = (data.current && data.current.temp_c !== undefined) ? data.current.temp_c : "-";
           const lon = data.location.lon;
           const lat = data.location.lat;
 
           $("#result").html(`
-            <div class="row"><span class="label">Lokasi:</span> <span class="value">${lokasi}</span></div>
+            <div class="row"><span class="label">Kecamatan:</span> <span class="value">${kecamatan}</span></div>
+            <div class="row"><span class="label">Provinsi:</span> <span class="value">${provinsi}</span></div>
             <div class="row"><span class="label">Negara:</span> <span class="value">${negara}</span></div>
             <div class="row"><span class="label">Suhu:</span> <span class="value">${suhu}°C</span></div>
             <div class="row"><span class="label">Longitude:</span> <span class="value">${lon}</span></div>
@@ -64,10 +70,30 @@
           `);
         },
         error: function(xhr) {
-          $("#result").html("<p style='color:red;'>Gagal mengambil data. Pastikan nama kota benar dan API key valid.</p>");
+          let msg = "Gagal mengambil data. Pastikan nama kota benar dan API key valid.";
+          if (xhr && xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.message) {
+            msg = `Error: ${xhr.responseJSON.error.message}`;
+          }
+          $("#result").html(`<p style='color:red;'>${msg}</p>`);
         }
       });
     }
+
+    $("#search-btn").on("click", function() {
+      const city = $("#city-input").val().trim();
+      getWeather(city);
+    });
+
+    $("#city-input").on("keypress", function(e) {
+      if (e.which === 13) {
+        $("#search-btn").click();
+      }
+    });
+
+    $(document).ready(function() {
+      const defaultCity = $("#city-input").val().trim();
+      if (defaultCity) getWeather(defaultCity);
+    });
   </script>
 </body>
 </html>
